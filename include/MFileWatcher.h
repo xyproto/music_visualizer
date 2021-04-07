@@ -3,8 +3,9 @@
 #include <chrono>
 #include <string>
 
-#include "filesystem.h"
+#include "FileWatcherLinux.h"
 
+#include "filesystem.h"
 #include "FileWatcher.h"
 
 class FileWatcher : FW::FileWatchListener {
