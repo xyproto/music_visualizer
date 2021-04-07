@@ -5,8 +5,8 @@
 
 #include "FileWatcherLinux.h"
 
-#include "filesystem.h"
 #include "FileWatcher.h"
+#include "filesystem.h"
 
 class FileWatcher : FW::FileWatchListener {
 public:

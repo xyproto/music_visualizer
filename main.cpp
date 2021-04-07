@@ -1,59 +1,41 @@
-#include <iostream>
-using std::cout;
-using std::endl;
-#include <string>
-#include <thread>
-using std::string;
-#include <chrono>
-using ClockT = std::chrono::steady_clock;
-#include <fstream>
-using std::ifstream;
-#include <stdexcept>
-using std::runtime_error;
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <ffts/ffts.h>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <pulse/pulseaudio.h>
+#include <stdexcept>
+#include <string>
+#include <thread>
 
+using std::cout;
+using std::endl;
+using std::string;
+using ClockT = std::chrono::steady_clock;
+using std::ifstream;
+using std::runtime_error;
+
+#include "AudioProcess.h"
+#include "LinuxAudioStream.h"
 #include "MFileWatcher.h"
-#include "filesystem.h"
-
 #include "Renderer.h"
 #include "ShaderConfig.h"
 #include "ShaderPrograms.h"
 #include "Window.h"
+#include "filesystem.h"
 
-#include "AudioProcess.h"
-#ifdef WINDOWS
-#include "ProceduralAudioStream.h"
-#include "WindowsAudioStream.h"
-using AudioStreamT = WindowsAudioStream;
-// using AudioStreamT = ProceduralAudioStream;
-#else
-#include "LinuxAudioStream.h"
 using AudioStreamT = LinuxAudioStream;
-#endif
 using AudioProcessT = AudioProcess<ClockT, AudioStreamT>;
 
-// TODO rename to shader player (like vmware player) ?
-// TODO adding builtin uniforms should be as easy as adding an entry to a list
-
-#if defined(WINDOWS) && defined(DEBUG)
-int WinMain()
-{
-#else
 int main(int argc, char* argv[])
 {
-#endif
 
     filesys::path shader_folder(SHADERDIR);
 
     filesys::path config_folder(RESOURCEDIR);
 
-    // TODO should this be here or in ShaderConfig?
     filesys::path shader_config_path = config_folder / "shader.json";
 
     FileWatcher watcher(shader_folder);
