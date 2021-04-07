@@ -2,7 +2,7 @@
 
 Visualize music and audio. Compiles on Arch Linux using [cxx](https://github.com/xyproto/cxx).
 
-![Example animation](img/anim.gif)
+![Example visualization](img/muviz.gif)
 
 ## Build instructions
 
