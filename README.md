@@ -8,6 +8,10 @@ Visualize music and audio. Compiles on Arch Linux using [cxx](https://github.com
 
     cxx
 
+## Installation instructions
+
+    DESTDIR="$pkgdir" PREFIX=/usr cxx install
+
 ## Package instructions
 
     cxx pkg
