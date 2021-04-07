@@ -1,3 +1,0 @@
-
-# TARGET_LINK_LIBRARIES(main stdc++fs glfw GLEW GLU GL pulse-simple pulse pthread libs/ffts/libffts.a ${CMAKE_SOURCE_DIR}/libs/SimpleFileWatcher/lib/Debug/libSimpleFileWatcher.a)
-

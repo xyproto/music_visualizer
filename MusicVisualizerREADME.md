@@ -1,4 +1,5 @@
 # About
+
 Welcome to the project page for my music visualizer :)
 
 Here is a comparison between what my app looks like and what other music
@@ -98,3 +99,20 @@ You can also message me on reddit at /u/xdaimon
 	Fast json file reader<br>
 <a href="https://github.com/catchorg/Catch2">Catch2</a>
 	Convenient testing framework<br>
+
+## Geometry shaders
+
+Please see the following links for more information on geometry shaders.
+	https://open.gl/geometry
+	https://www.khronos.org/opengl/wiki/Geometry_Shader
+	http://www.informit.com/articles/article.aspx?p=2120983&seqNum=2
+
+The vertex shader runs once per vertex (geom_iters).
+The geometry shader runs once per primitive received from the vertex shader and has access to the vertices of that primitive.
+This program's vertex shader always outputs point primatives.
+
+out can have these primitive types
+	points
+	line_strip
+	triangle_strip
+
