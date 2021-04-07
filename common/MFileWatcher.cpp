@@ -26,177 +26,154 @@
 #define FILEWATCHER_IMPL FileWatcherLinux
 #include "MFileWatcher.h"
 
-namespace FW
+namespace FW {
+
+//--------
+FileWatcher::FileWatcher() { mImpl = new FILEWATCHER_IMPL(); }
+
+//--------
+FileWatcher::~FileWatcher()
 {
+    delete mImpl;
+    mImpl = 0;
+}
 
-    //--------
-    FileWatcher::FileWatcher()
-    {
-        mImpl = new FILEWATCHER_IMPL();
+//--------
+WatchID FileWatcher::addWatch(const String& directory, FileWatchListener* watcher)
+{
+    return mImpl->addWatch(directory, watcher, false);
+}
+
+//--------
+WatchID FileWatcher::addWatch(const String& directory, FileWatchListener* watcher, bool recursive)
+{
+    return mImpl->addWatch(directory, watcher, recursive);
+}
+
+//--------
+void FileWatcher::removeWatch(const String& directory) { mImpl->removeWatch(directory); }
+
+//--------
+void FileWatcher::removeWatch(WatchID watchid) { mImpl->removeWatch(watchid); }
+
+//--------
+void FileWatcher::update() { mImpl->update(); }
+
+void async_filewatcher_thread(AsyncFileWatcher* arg)
+{
+    AsyncFileWatcher& watcher_handle = *arg;
+    BufferedFileWatcher& watcher = watcher_handle.m_watch;
+
+    while (watcher_handle.m_running) {
+        watcher.update();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
+}
 
-    //--------
-    FileWatcher::~FileWatcher()
-    {
-        delete mImpl;
-        mImpl = 0;
-    }
+BufferedFileWatcher::BufferedFileWatcher() { }
 
-    //--------
-    WatchID FileWatcher::addWatch(const String& directory, FileWatchListener* watcher)
-    {
-        return mImpl->addWatch(directory, watcher, false);
-    }
+BufferedFileWatcher::~BufferedFileWatcher() { }
 
-    //--------
-    WatchID FileWatcher::addWatch(const String& directory, FileWatchListener* watcher, bool recursive)
-    {
-        return mImpl->addWatch(directory, watcher, recursive);
-    }
+void BufferedFileWatcher::addWatch(
+    const String& directory, FileWatchListener* watcher, WatchID* target)
+{
+    addWatch(directory, watcher, false, target);
+}
 
-    //--------
-    void FileWatcher::removeWatch(const String& directory)
-    {
-        mImpl->removeWatch(directory);
-    }
+void BufferedFileWatcher::addWatch(
+    const String& directory, FileWatchListener* watcher, bool recursive, WatchID* target)
+{
+    command_struct str;
+    str.Type = AddWatch;
+    str.path = directory;
+    str.Add.watcher = watcher;
+    str.Add.recursive = recursive;
+    str.Add.target = target;
 
-    //--------
-    void FileWatcher::removeWatch(WatchID watchid)
-    {
-        mImpl->removeWatch(watchid);
-    }
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_commands.push(str);
+}
 
-    //--------
-    void FileWatcher::update()
-    {
-        mImpl->update();
-    }
+void BufferedFileWatcher::removeWatch(const String& directory)
+{
+    command_struct str;
+    str.Type = RemoveWatchStr;
+    str.path = directory;
 
-    void async_filewatcher_thread(AsyncFileWatcher* arg)
-    {
-        AsyncFileWatcher& watcher_handle = *arg;
-        BufferedFileWatcher& watcher = watcher_handle.m_watch;
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_commands.push(str);
+}
 
-        while (watcher_handle.m_running)
-        {
-            watcher.update();
+void BufferedFileWatcher::removeWatch(WatchID watchid)
+{
+    command_struct str;
+    str.Type = RemoveWatchID;
+    str.RemoveID.id = watchid;
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-    }
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_commands.push(str);
+}
 
-    BufferedFileWatcher::BufferedFileWatcher()
-    {
-    }
-
-    BufferedFileWatcher::~BufferedFileWatcher()
-    {
-    }
-
-    void BufferedFileWatcher::addWatch(const String & directory, FileWatchListener * watcher, WatchID* target)
-    {
-        addWatch(directory, watcher, false, target);
-    }
-
-    void BufferedFileWatcher::addWatch(const String & directory, FileWatchListener * watcher, bool recursive, WatchID* target)
-    {
-        command_struct str;
-        str.Type = AddWatch;
-        str.path = directory;
-        str.Add.watcher = watcher;
-        str.Add.recursive = recursive;
-        str.Add.target = target;
-
+void BufferedFileWatcher::update()
+{
+    if (!m_commands.empty()) {
         std::lock_guard<std::mutex> lock(m_mutex);
-        m_commands.push(str);
-    }
+        while (!m_commands.empty()) {
+            auto cmd = m_commands.front();
+            m_commands.pop();
 
-    void BufferedFileWatcher::removeWatch(const String & directory)
-    {
-        command_struct str;
-        str.Type = RemoveWatchStr;
-        str.path = directory;
-
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_commands.push(str);
-    }
-
-    void BufferedFileWatcher::removeWatch(WatchID watchid)
-    {
-        command_struct str;
-        str.Type = RemoveWatchID;
-        str.RemoveID.id = watchid;
-
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_commands.push(str);
-    }
-
-    void BufferedFileWatcher::update()
-    {
-        if (!m_commands.empty())
-        {
-            std::lock_guard<std::mutex> lock(m_mutex);
-            while (!m_commands.empty())
-            {
-                auto cmd = m_commands.front();
-                m_commands.pop();
-
-                switch (cmd.Type)
-                {
-                case AddWatch:
-                {
-                    auto ret = m_watcher.addWatch(cmd.path, cmd.Add.watcher, cmd.Add.recursive);
-                    if (cmd.Add.target != NULL)
-                        *cmd.Add.target = ret;
-                    break;
-                }
-                case RemoveWatchID:
-                    m_watcher.removeWatch(cmd.RemoveID.id);
-                    break;
-                case RemoveWatchStr:
-                    m_watcher.removeWatch(cmd.path);
-                    break;
-                }
+            switch (cmd.Type) {
+            case AddWatch: {
+                auto ret = m_watcher.addWatch(cmd.path, cmd.Add.watcher, cmd.Add.recursive);
+                if (cmd.Add.target != NULL)
+                    *cmd.Add.target = ret;
+                break;
+            }
+            case RemoveWatchID:
+                m_watcher.removeWatch(cmd.RemoveID.id);
+                break;
+            case RemoveWatchStr:
+                m_watcher.removeWatch(cmd.path);
+                break;
             }
         }
-
-        m_watcher.update();
     }
 
-    AsyncFileWatcher::AsyncFileWatcher() : m_running(true)
-    {
-        m_thr = std::thread(async_filewatcher_thread, this);
-    }
+    m_watcher.update();
+}
 
-    AsyncFileWatcher::~AsyncFileWatcher()
-    {
-        m_running = false;
-        m_thr.join();
-    }
+AsyncFileWatcher::AsyncFileWatcher()
+    : m_running(true)
+{
+    m_thr = std::thread(async_filewatcher_thread, this);
+}
 
-    void AsyncFileWatcher::addWatch(const String & directory, FileWatchListener * watcher, WatchID * target)
-    {
-        m_watch.addWatch(directory, watcher, target);
-    }
+AsyncFileWatcher::~AsyncFileWatcher()
+{
+    m_running = false;
+    m_thr.join();
+}
 
-    void AsyncFileWatcher::addWatch(const String & directory, FileWatchListener * watcher, bool recursive, WatchID * target)
-    {
-        m_watch.addWatch(directory, watcher, recursive, target);
-    }
+void AsyncFileWatcher::addWatch(
+    const String& directory, FileWatchListener* watcher, WatchID* target)
+{
+    m_watch.addWatch(directory, watcher, target);
+}
 
-    void AsyncFileWatcher::removeWatch(const String & directory)
-    {
-        m_watch.removeWatch(directory);
-    }
+void AsyncFileWatcher::addWatch(
+    const String& directory, FileWatchListener* watcher, bool recursive, WatchID* target)
+{
+    m_watch.addWatch(directory, watcher, recursive, target);
+}
 
-    void AsyncFileWatcher::removeWatch(WatchID watchid)
-    {
-        m_watch.removeWatch(watchid);
-    }
+void AsyncFileWatcher::removeWatch(const String& directory) { m_watch.removeWatch(directory); }
 
-    void AsyncFileWatcher::update()
-    {
-        // no-op, handled by our thread
-    }
+void AsyncFileWatcher::removeWatch(WatchID watchid) { m_watch.removeWatch(watchid); }
 
-};//namespace FW
+void AsyncFileWatcher::update()
+{
+    // no-op, handled by our thread
+}
+
+}; // namespace FW

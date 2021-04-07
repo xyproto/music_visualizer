@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <chrono>
+#include <string>
 
 #include "filesystem.h"
 
@@ -9,20 +9,22 @@
 
 class FileWatcher : FW::FileWatchListener {
 public:
-    FileWatcher(filesys::path shader_folder) : shader_folder(shader_folder), shaders_changed(false), last_event_time()
+    FileWatcher(filesys::path shader_folder)
+        : shader_folder(shader_folder)
+        , shaders_changed(false)
+        , last_event_time()
     {
         file_watcher.addWatch(shader_folder.string(), (FW::FileWatchListener*)this, false);
     }
 
-    ~FileWatcher() {
-        file_watcher.removeWatch(shader_folder.string());
-    }
+    ~FileWatcher() { file_watcher.removeWatch(shader_folder.string()); }
 
     // More than one event can be delivered by the editor from a single save command.
     // So sleep a few millis and then process the event and set the last process time.
     // If new event is within 100 ms of last process time, then ignore it.
     // If shader.json or any frag or geom file has changed, then set shaders_changed.
-    void handleFileAction(FW::WatchID watchid, const FW::String& dir, const FW::String& filename_str, FW::Action action)
+    void handleFileAction(FW::WatchID watchid, const FW::String& dir,
+        const FW::String& filename_str, FW::Action action)
     {
         if (FW::Action::Delete == action)
             return;
@@ -40,7 +42,8 @@ public:
         last_event_time = std::chrono::steady_clock::now();
     }
 
-    bool files_changed() {
+    bool files_changed()
+    {
         if (shaders_changed) {
             shaders_changed = false;
             return true;

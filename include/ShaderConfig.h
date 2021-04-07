@@ -1,9 +1,9 @@
 #pragma once
 
+#include "filesystem.h"
+#include <array>
 #include <string>
 #include <vector>
-#include <array>
-#include "filesystem.h"
 
 struct Buffer {
     std::string name;
@@ -14,41 +14,41 @@ struct Buffer {
     int geom_iters = 1;
     std::array<float, 3> clear_color;
     // Enables building w/ g++-5
-    Buffer() { clear_color = {0}; }
+    Buffer() { clear_color = { 0 }; }
 };
 
 struct Uniform {
-	std::string name;
-	std::vector<float> values;
+    std::string name;
+    std::vector<float> values;
 };
 
 struct AudioOptions {
-	bool fft_sync = true;
-	bool xcorr_sync = true;
+    bool fft_sync = true;
+    bool xcorr_sync = true;
     float fft_smooth = 1.f;
-	float wave_smooth = .8f;
+    float wave_smooth = .8f;
 };
 
 class ShaderConfig {
 public:
     ShaderConfig(const filesys::path& shader_folder, const filesys::path& conf_file_path);
-	ShaderConfig(const std::string &json_str); // used in testing
+    ShaderConfig(const std::string& json_str); // used in testing
 
-	struct {
-		int width = 400;
-		int height = 300;
-	} mInitWinSize;
+    struct {
+        int width = 400;
+        int height = 300;
+    } mInitWinSize;
     bool mSimpleMode;
-	bool mBlend = false;
-	bool mAudio_enabled = true;
-	Buffer mImage;
-	std::vector<Buffer> mBuffers;
-	std::vector<int> mRender_order; // render_order[n] is an index into buffers
-	std::vector<Uniform> mUniforms;
-	AudioOptions mAudio_ops;
+    bool mBlend = false;
+    bool mAudio_enabled = true;
+    Buffer mImage;
+    std::vector<Buffer> mBuffers;
+    std::vector<int> mRender_order; // render_order[n] is an index into buffers
+    std::vector<Uniform> mUniforms;
+    AudioOptions mAudio_ops;
 
 #ifdef TEST
-	ShaderConfig() {}; // For generating mock instances
+    ShaderConfig() {}; // For generating mock instances
 #endif
 
 private:

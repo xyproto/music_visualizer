@@ -1,14 +1,15 @@
 #pragma once
 
-// TODO ifdef a scalar on the fft frequency because fft amplitude is much smaller on linux than on windows
+// TODO ifdef a scalar on the fft frequency because fft amplitude is much smaller on linux than on
+// windows
 
-#include <iostream>
 #include <chrono>
+#include <iostream>
 namespace chrono = std::chrono;
 #include <cmath> // std::abs
+#include <complex>
 #include <limits> // numeric_limits<T>::infinity()
 #include <mutex>
-#include <complex>
 #include <thread>
 using std::complex;
 #include <algorithm>
@@ -72,7 +73,8 @@ static const int VL = VISUALIZER_BUFSIZE;
 // Cross correlation sync options
 // store the n most recent buffers sent to the visualizer (stores contents of visualizer buffer).
 static const int HISTORY_NUM_FRAMES = 50;
-// search an interval of samples centered around the current read index (r) for the maximum cross correlation.
+// search an interval of samples centered around the current read index (r) for the maximum cross
+// correlation.
 static const int HISTORY_SEARCH_RANGE = 128;
 #else
 static const int HISTORY_NUM_FRAMES = 9;
@@ -87,37 +89,30 @@ static const int HISTORY_BUFF_SIZE = VL;
 // The performance cost for the cross correlations is roughly
 // HISTORY_SEARCH_RANGE * HISTORY_NUM_FRAMES * HISTORY_BUFF_SIZE / HISTORY_SEARCH_GRANULARITY
 
-// AudioProcess does not create AudioStream because ProceduralAudioStream must be created by AudioProcess's owner
-template <typename ClockT, typename AudioStreamT>
-class AudioProcess {
+// AudioProcess does not create AudioStream because ProceduralAudioStream must be created by
+// AudioProcess's owner
+template <typename ClockT, typename AudioStreamT> class AudioProcess {
 public:
     AudioProcess(AudioStreamT&, AudioOptions);
     ~AudioProcess();
 
     void step();
-    void start() {
+    void start()
+    {
         while (!exit_audio_system_flag) {
             if (audio_system_paused) {
                 step();
-            }
-            else {
+            } else {
                 std::this_thread::sleep_for(chrono::milliseconds(500));
             }
         }
     }
-    void exit_audio_system() {
-        exit_audio_system_flag = true;
-    }
-    void pause_audio_system() {
-        audio_system_paused = false;
-    }
-    void start_audio_system() {
-        audio_system_paused = true;
-    }
-    AudioData& get_audio_data() {
-        return audio_sink;
-    }
-    void set_audio_options(AudioOptions& ao) {
+    void exit_audio_system() { exit_audio_system_flag = true; }
+    void pause_audio_system() { audio_system_paused = false; }
+    void start_audio_system() { audio_system_paused = true; }
+    AudioData& get_audio_data() { return audio_sink; }
+    void set_audio_options(AudioOptions& ao)
+    {
         xcorr_sync = ao.xcorr_sync;
         fft_sync = ao.fft_sync;
         wave_smoother = ao.wave_smooth;
@@ -202,31 +197,32 @@ private:
     static int advance_index(int w, int r, float freq, int tbl);
 
     // Compute the dot product between a(t + a_offset) and b(b_size-t)
-    static float reverse_dot_prod(const float* a, const float* b, int a_offset, int a_size, int b_size);
+    static float reverse_dot_prod(
+        const float* a, const float* b, int a_offset, int a_size, int b_size);
 
-    static int cross_correlation_sync(const int w,
-        const int r,
-        const int dist,
-        float* history_buff[HISTORY_NUM_FRAMES],
-        const int frame_id,
-        const float* buff);
+    static int cross_correlation_sync(const int w, const int r, const int dist,
+        float* history_buff[HISTORY_NUM_FRAMES], const int frame_id, const float* buff);
 
     // converts number of seconds x to a time duration for the ClockT type
     static typename ClockT::duration dura(float x);
 };
 
 template <typename ClockT, typename AudioStreamT>
-AudioProcess<ClockT, AudioStreamT>::AudioProcess(AudioStreamT& _audio_stream, AudioOptions audio_options)
-    : audio_stream(_audio_stream), audio_sink() {
+AudioProcess<ClockT, AudioStreamT>::AudioProcess(
+    AudioStreamT& _audio_stream, AudioOptions audio_options)
+    : audio_stream(_audio_stream)
+    , audio_sink()
+{
     if (audio_stream.get_sample_rate() != 48000) {
-        std::cout << "The AudioProcess is meant to consume 48000hz audio but the given AudioStream "
+        std::cout
+            << "The AudioProcess is meant to consume 48000hz audio but the given AudioStream "
             << "produces " << audio_stream.get_sample_rate() << "hz audio." << std::endl;
         exit(1);
     }
     if (audio_stream.get_max_buff_size() < ABL) {
         std::cout << "AudioProcess needs at least " << ABL << " frames per call to get_next_pcm"
-            << " but the given AudioStream only provides " << audio_stream.get_max_buff_size()
-            << "." << std::endl;
+                  << " but the given AudioStream only provides "
+                  << audio_stream.get_max_buff_size() << "." << std::endl;
         exit(1);
     }
 
@@ -273,7 +269,8 @@ AudioProcess<ClockT, AudioStreamT>::AudioProcess(AudioStreamT& _audio_stream, Au
 }
 
 template <typename ClockT, typename AudioStreamT>
-AudioProcess<ClockT, AudioStreamT>::~AudioProcess() {
+AudioProcess<ClockT, AudioStreamT>::~AudioProcess()
+{
     delete[] audio_sink.audio_l;
     delete[] audio_sink.audio_r;
     delete[] audio_sink.freq_l;
@@ -295,8 +292,8 @@ AudioProcess<ClockT, AudioStreamT>::~AudioProcess() {
     ffts_free(fft_plan);
 }
 
-template <typename ClockT, typename AudioStreamT>
-void AudioProcess<ClockT, AudioStreamT>::step() {
+template <typename ClockT, typename AudioStreamT> void AudioProcess<ClockT, AudioStreamT>::step()
+{
     audio_stream.get_next_pcm(audio_buff_l + writer, audio_buff_r + writer, ABL);
     writer = move_index(writer, ABL, TBL);
 
@@ -321,8 +318,7 @@ void AudioProcess<ClockT, AudioStreamT>::step() {
         if (fft_sync) {
             freq_l = get_harmonic_less_than(max_frequency(fft_out_l), 80.f);
             freq_r = get_harmonic_less_than(max_frequency(fft_out_r), 80.f);
-        }
-        else {
+        } else {
             freq_l = 60.f;
             freq_r = 60.f;
         }
@@ -331,10 +327,14 @@ void AudioProcess<ClockT, AudioStreamT>::step() {
         reader_l = advance_index(writer, reader_l, freq_l, TBL);
         reader_r = advance_index(writer, reader_r, freq_r, TBL);
         if (xcorr_sync) {
-            std::copy(audio_sink.audio_l, audio_sink.audio_l + VL, history_buff_l[frame_id % HISTORY_NUM_FRAMES]);
-            std::copy(audio_sink.audio_r, audio_sink.audio_r + VL, history_buff_r[frame_id % HISTORY_NUM_FRAMES]);
-            reader_l = cross_correlation_sync(writer, reader_l, HISTORY_SEARCH_RANGE, history_buff_l, frame_id, audio_buff_l);
-            reader_r = cross_correlation_sync(writer, reader_r, HISTORY_SEARCH_RANGE, history_buff_r, frame_id, audio_buff_r);
+            std::copy(audio_sink.audio_l, audio_sink.audio_l + VL,
+                history_buff_l[frame_id % HISTORY_NUM_FRAMES]);
+            std::copy(audio_sink.audio_r, audio_sink.audio_r + VL,
+                history_buff_r[frame_id % HISTORY_NUM_FRAMES]);
+            reader_l = cross_correlation_sync(
+                writer, reader_l, HISTORY_SEARCH_RANGE, history_buff_l, frame_id, audio_buff_l);
+            reader_r = cross_correlation_sync(
+                writer, reader_r, HISTORY_SEARCH_RANGE, history_buff_r, frame_id, audio_buff_r);
         }
 
         float max_amplitude_l = std::numeric_limits<float>::min();
@@ -359,8 +359,10 @@ void AudioProcess<ClockT, AudioStreamT>::step() {
             audio_sink.audio_l[i] = mix(audio_sink.audio_l[i], sample_l, wave_smoother);
             audio_sink.audio_r[i] = mix(audio_sink.audio_r[i], sample_r, wave_smoother);
 
-            audio_sink.freq_l[i] = mix(audio_sink.freq_l[i], std::abs(fft_out_l[i]) / std::sqrt(float(FFTLEN)), fft_smoother);
-            audio_sink.freq_r[i] = mix(audio_sink.freq_r[i], std::abs(fft_out_r[i]) / std::sqrt(float(FFTLEN)), fft_smoother);
+            audio_sink.freq_l[i] = mix(audio_sink.freq_l[i],
+                std::abs(fft_out_l[i]) / std::sqrt(float(FFTLEN)), fft_smoother);
+            audio_sink.freq_r[i] = mix(audio_sink.freq_r[i],
+                std::abs(fft_out_r[i]) / std::sqrt(float(FFTLEN)), fft_smoother);
         }
 
         // Smooth the fft a bit
@@ -384,7 +386,8 @@ void AudioProcess<ClockT, AudioStreamT>::step() {
 }
 
 template <typename ClockT, typename AudioStreamT>
-int AudioProcess<ClockT, AudioStreamT>::max_bin(const complex<float>* f) {
+int AudioProcess<ClockT, AudioStreamT>::max_bin(const complex<float>* f)
+{
     float max_norm = 0.f;
     int max_i = 0;
     // catch frequencies from 5.86 to 586 (that is i * SRF / FFTLEN for i from 1 to 100)
@@ -399,7 +402,8 @@ int AudioProcess<ClockT, AudioStreamT>::max_bin(const complex<float>* f) {
 }
 
 template <typename ClockT, typename AudioStreamT>
-int AudioProcess<ClockT, AudioStreamT>::move_index(int p, int delta, int tbl) {
+int AudioProcess<ClockT, AudioStreamT>::move_index(int p, int delta, int tbl)
+{
     p = (p + delta) % tbl;
     if (p < 0) {
         p += tbl;
@@ -408,7 +412,8 @@ int AudioProcess<ClockT, AudioStreamT>::move_index(int p, int delta, int tbl) {
 }
 
 template <typename ClockT, typename AudioStreamT>
-int AudioProcess<ClockT, AudioStreamT>::dist_forward(int from, int to, int tbl) {
+int AudioProcess<ClockT, AudioStreamT>::dist_forward(int from, int to, int tbl)
+{
     int d = to - from;
     if (d < 0)
         d += tbl;
@@ -416,12 +421,14 @@ int AudioProcess<ClockT, AudioStreamT>::dist_forward(int from, int to, int tbl) 
 }
 
 template <typename ClockT, typename AudioStreamT>
-int AudioProcess<ClockT, AudioStreamT>::dist_backward(int from, int to, int tbl) {
+int AudioProcess<ClockT, AudioStreamT>::dist_backward(int from, int to, int tbl)
+{
     return dist_forward(to, from, tbl);
 }
 
 template <typename ClockT, typename AudioStreamT>
-float AudioProcess<ClockT, AudioStreamT>::max_frequency(const complex<float>* f) {
+float AudioProcess<ClockT, AudioStreamT>::max_frequency(const complex<float>* f)
+{
     // more info -> http://dspguru.com/dsp/howtos/how-to-interpolate-fft-peak
     // https://ccrma.stanford.edu/~jos/sasp/Quadratic_Interpolation_Spectral_Peaks.html
     int k = max_bin(f);
@@ -438,7 +445,8 @@ float AudioProcess<ClockT, AudioStreamT>::max_frequency(const complex<float>* f)
 }
 
 template <typename ClockT, typename AudioStreamT>
-float AudioProcess<ClockT, AudioStreamT>::get_harmonic_less_than(float freq, float thres) {
+float AudioProcess<ClockT, AudioStreamT>::get_harmonic_less_than(float freq, float thres)
+{
     const float a = std::log2f(freq);
     const float b = std::log2f(thres);
     freq *= std::pow(2, int(std::floor(b - a)));
@@ -448,17 +456,19 @@ float AudioProcess<ClockT, AudioStreamT>::get_harmonic_less_than(float freq, flo
 }
 
 template <typename ClockT, typename AudioStreamT>
-float AudioProcess<ClockT, AudioStreamT>::mix(float x, float y, float m) {
-    return (1.f - m) * x + (m)* y;
+float AudioProcess<ClockT, AudioStreamT>::mix(float x, float y, float m)
+{
+    return (1.f - m) * x + (m)*y;
 }
 
 template <typename ClockT, typename AudioStreamT>
-int AudioProcess<ClockT, AudioStreamT>::advance_index(int w, int r, float freq, int tbl) {
+int AudioProcess<ClockT, AudioStreamT>::advance_index(int w, int r, float freq, int tbl)
+{
     int wave_len = int(SR / freq + .5f);
 
     r = move_index(r, wave_len, tbl);
 
-    //if (int df = dist_forward(r, w, tbl); df < VL)
+    // if (int df = dist_forward(r, w, tbl); df < VL)
     //    cout << "reader too close: " << df << "\twave_len: " << wave_len << endl;
 
     // skip past the discontinuity
@@ -469,7 +479,9 @@ int AudioProcess<ClockT, AudioStreamT>::advance_index(int w, int r, float freq, 
 }
 
 template <typename ClockT, typename AudioStreamT>
-float AudioProcess<ClockT, AudioStreamT>::reverse_dot_prod(const float* a, const float* b, int a_offset, int a_size, int b_size) {
+float AudioProcess<ClockT, AudioStreamT>::reverse_dot_prod(
+    const float* a, const float* b, int a_offset, int a_size, int b_size)
+{
     float dot = 0.f;
     for (int t = 0; t < b_size; ++t) {
         dot += a[(t + a_offset) % a_size] * b[b_size - 1 - t];
@@ -479,8 +491,9 @@ float AudioProcess<ClockT, AudioStreamT>::reverse_dot_prod(const float* a, const
 
 // TODO try fft based cross correlation for perf reasons.
 template <typename ClockT, typename AudioStreamT>
-int AudioProcess<ClockT, AudioStreamT>::cross_correlation_sync(
-    const int w, const int r, const int dist, float* history_buff[HISTORY_NUM_FRAMES], const int frame_id, const float* buff) {
+int AudioProcess<ClockT, AudioStreamT>::cross_correlation_sync(const int w, const int r,
+    const int dist, float* history_buff[HISTORY_NUM_FRAMES], const int frame_id, const float* buff)
+{
     // look through a range of dist samples centered at r
     const int r_begin = move_index(r, -dist / 2, TBL);
 
@@ -499,21 +512,24 @@ int AudioProcess<ClockT, AudioStreamT>::cross_correlation_sync(
     std::for_each(indices.begin(), indices.end(),
 #endif
         [&](const int i) {
-        const int local_r = (r_begin + i * HISTORY_SEARCH_GRANULARITY) % TBL;
-        float dot = 0.f;
-        for (int b = 0; b < HISTORY_NUM_FRAMES; ++b) {
-            int cur_buf = (frame_id + b) % HISTORY_NUM_FRAMES;
-            dot += reverse_dot_prod(buff, history_buff[cur_buf], local_r, TBL, HISTORY_BUFF_SIZE);
-        }
-        dots[i] = { local_r, dot };
-    });
+            const int local_r = (r_begin + i * HISTORY_SEARCH_GRANULARITY) % TBL;
+            float dot = 0.f;
+            for (int b = 0; b < HISTORY_NUM_FRAMES; ++b) {
+                int cur_buf = (frame_id + b) % HISTORY_NUM_FRAMES;
+                dot += reverse_dot_prod(
+                    buff, history_buff[cur_buf], local_r, TBL, HISTORY_BUFF_SIZE);
+            }
+            dots[i] = { local_r, dot };
+        });
 
-    std::sort(dots.begin(), dots.end(), [](const result& x, const result& y) { return x.dot > y.dot; });
+    std::sort(
+        dots.begin(), dots.end(), [](const result& x, const result& y) { return x.dot > y.dot; });
     return dots[0].r;
 }
 
 template <typename ClockT, typename AudioStreamT>
-typename ClockT::duration AudioProcess<ClockT, AudioStreamT>::dura(float x) {
+typename ClockT::duration AudioProcess<ClockT, AudioStreamT>::dura(float x)
+{
     // dura() converts a second, represented as a double, into the appropriate unit of time for
     // ClockT and with the appropriate arithematic type using dura() avoids errors like this :
     // chrono::seconds(double initializer) dura() : <double,seconds> ->
