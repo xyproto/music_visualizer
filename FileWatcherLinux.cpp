@@ -24,8 +24,6 @@
 
 #include <FileWatcherLinux.h>
 
-#if FILEWATCHER_PLATFORM == FILEWATCHER_PLATFORM_LINUX
-
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
@@ -182,5 +180,3 @@ namespace FW
     }
 
 };//namespace FW
-
-#endif//FILEWATCHER_PLATFORM_LINUX

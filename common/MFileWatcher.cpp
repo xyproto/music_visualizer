@@ -22,17 +22,9 @@
 
 #include <FileWatcher.h>
 #include <FileWatcherImpl.h>
-
-#if FILEWATCHER_PLATFORM == FILEWATCHER_PLATFORM_WIN32
-#	include <FileWatcherWin32.h>
-#	define FILEWATCHER_IMPL FileWatcherWin32
-#elif FILEWATCHER_PLATFORM == FILEWATCHER_PLATFORM_KQUEUE
-#	include <FileWatcherOSX.h>
-#	define FILEWATCHER_IMPL FileWatcherOSX
-#elif FILEWATCHER_PLATFORM == FILEWATCHER_PLATFORM_LINUX
-#	include <FileWatcherLinux.h>
-#	define FILEWATCHER_IMPL FileWatcherLinux
-#endif
+#include <FileWatcherLinux.h>
+#define FILEWATCHER_IMPL FileWatcherLinux
+#include "MFileWatcher.h"
 
 namespace FW
 {
