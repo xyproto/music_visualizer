@@ -11,8 +11,15 @@ using std::ifstream;
 #include <stdexcept>
 using std::runtime_error;
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <pulse/pulseaudio.h>
+#include <filesystem>
+#include <chrono>
+#include <ffts/ffts.h>
+
 #include "filesystem.h"
-#include "FileWatcher.h"
+#include "MFileWatcher.h"
 
 #include "Window.h"
 #include "ShaderConfig.h"
@@ -21,12 +28,12 @@ using std::runtime_error;
 
 #include "AudioProcess.h"
 #ifdef WINDOWS
-#include "AudioStreams/WindowsAudioStream.h"
-#include "AudioStreams/ProceduralAudioStream.h"
+#include "WindowsAudioStream.h"
+#include "ProceduralAudioStream.h"
 using AudioStreamT = WindowsAudioStream;
 //using AudioStreamT = ProceduralAudioStream;
 #else
-#include "AudioStreams/LinuxAudioStream.h"
+#include "LinuxAudioStream.h"
 using AudioStreamT = LinuxAudioStream;
 #endif
 using AudioProcessT = AudioProcess<ClockT, AudioStreamT>;
@@ -40,9 +47,12 @@ int WinMain() {
 int main(int argc, char* argv[]) {
 #endif
 
-    filesys::path shader_folder("shaders");
+    filesys::path shader_folder(SHADERDIR);
+
+    filesys::path config_folder(RESOURCEDIR);
+
     // TODO should this be here or in ShaderConfig?
-    filesys::path shader_config_path = shader_folder / "shader.json";
+    filesys::path shader_config_path = config_folder / "shader.json";
 
     FileWatcher watcher(shader_folder);
 

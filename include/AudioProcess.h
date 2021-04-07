@@ -22,10 +22,10 @@ using std::complex;
 #include <execution>
 #endif
 
-#include "AudioStreams/AudioStream.h"
+#include "AudioStream.h"
 #include "ShaderConfig.h" // AudioOptions
 
-#include "ffts.h"
+#include <ffts/ffts.h>
 
 static const int VISUALIZER_BUFSIZE = 2 * 1024;
 struct AudioData {
