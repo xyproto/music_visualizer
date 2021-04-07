@@ -62,6 +62,6 @@ public:
         = 0;
 
 }; // end FileWatcherImpl
-}; // namespace FW
+} // namespace FW
 
 #endif //_FW_FILEWATCHERIMPL_H_

@@ -34,9 +34,9 @@ int main(int argc, char* argv[])
 
     filesys::path shader_folder(SHADERDIR);
 
-    filesys::path config_folder(RESOURCEDIR);
+    filesys::path shader_config_folder(SHADERDIR);
 
-    filesys::path shader_config_path = config_folder / "shader.json";
+    filesys::path shader_config_path = shader_config_folder / "shader.json";
 
     FileWatcher watcher(shader_folder);
 

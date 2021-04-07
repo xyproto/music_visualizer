@@ -80,6 +80,6 @@ private:
 
 }; // end FileWatcherLinux
 
-}; // namespace FW
+} // namespace FW
 
 #endif //_FW_FILEWATCHERLINUX_H_

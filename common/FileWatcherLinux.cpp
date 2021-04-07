@@ -168,4 +168,4 @@ void FileWatcherLinux::handleAction(
     }
 }
 
-}; // namespace FW
+} // namespace FW
