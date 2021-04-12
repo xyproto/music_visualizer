@@ -10,6 +10,8 @@ Visualize music and audio. Compiles on Arch Linux using [cxx](https://github.com
 
 ## Installation instructions
 
+Set `$pkgdir` to the root of where you want muviz to be installed.
+
     DESTDIR="$pkgdir" PREFIX=/usr cxx install
 
 ## Package instructions
