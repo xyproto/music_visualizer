@@ -4,7 +4,9 @@ Visualize music and audio. Compiles on Arch Linux using [cxx](https://github.com
 
 The idea is that this can be used on a Raspberry Pi in combination with a projector to light up the performer to the beats of the music. I have not tested it on a Raspberry Pi yet, but that is the plan.
 
-The default visualizer in `muviz` is based on both one of the visualizers from `music_visualizer` and also a [shader that I wrote](https://www.shadertoy.com/view/3slSRN):
+The default visualizer in `muviz` is based on both one of the visualizers from `music_visualizer` and also a [shader that I wrote](https://www.shadertoy.com/view/3slSRN).
+
+Screenshot of the default music visualizer:
 
 ![Screenshot](img/muviz_screenshot.jpg)
 
@@ -19,6 +21,10 @@ It also contains files from:
 * Which is a fork of [apetrone/simplefilewatcher](https://github.com/apetrone/simplefilewatcher)
 
 SimpleFileWatcher is MIT licensed.
+
+## Command line options
+
+Use `--help` or `--version` to display help or the current version. Use `-l` to list the available music visualizer. Supply one of the names as the first argument to `muviz` to use them.
 
 ## Build instructions
 
