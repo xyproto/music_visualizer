@@ -40,6 +40,10 @@ Set `$pkgdir` to the root of where you want muviz to be installed.
 
     ffts glfw libpulse rapidjson
 
+## Installation on Arch Linux
+
+Just install `muviz` from AUR using your favorite AUR helper.
+
 ## General information
 
 * Version: 1.1.1
