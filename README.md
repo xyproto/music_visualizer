@@ -2,7 +2,7 @@
 
 Visualize music and audio. Compiles on Arch Linux using [cxx](https://github.com/xyproto/cxx).
 
-The idea is that this can be used on a Raspberry Pi in combination with a projector to light up the performer to the beats of the music. I have not tested it on a Raspberry Pi yet, but that is the plan.
+The idea is that this can be used on a Raspberry Pi in combination with an old projector to light up the performer to the beats of the music. I have not tested it on a Raspberry Pi yet, but this is the plan.
 
 The default visualizer in `muviz` is based on both one of the visualizers from `music_visualizer` and also a [shader that I wrote](https://www.shadertoy.com/view/3slSRN).
 
