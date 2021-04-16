@@ -12,7 +12,7 @@ I have not tested it on a Raspberry Pi yet, but that is the plan.
 
 This is a fork of [bradleybauer/music_visualizer](https://github.com/bradleybauer/music_visualizer) (GPL3 licensed).
 
-The default visualizer in `muviz` is based on one of the visualizers from `music_visualizer` and also [this shader](https://www.shadertoy.com/view/3slSRN) that I wrote and then uploaded to Shadertoy.
+The default visualizer in `muviz` is based on one of the visualizers from `music_visualizer` and also a [shader that I wrote](https://www.shadertoy.com/view/3slSRN).
 
 It also contains files from:
 
