@@ -29,12 +29,46 @@ using std::runtime_error;
 using AudioStreamT = LinuxAudioStream;
 using AudioProcessT = AudioProcess<ClockT, AudioStreamT>;
 
+const std::string version_string = "muviz 1.1.0";
+
+const std::string default_visualizer = "spikestar";
+
 int main(int argc, char* argv[])
 {
-
     filesys::path shader_folder(SHADERDIR);
-
     filesys::path shader_config_folder(SHADERDIR);
+
+    if ((argc > 1) && string(argv[1]) == "-l") {
+        // list the available shader directories in shader_folder
+        for (const auto& entry : std::filesystem::directory_iterator(shader_folder.string())) {
+            if (entry.is_directory()) {
+                const std::string s = entry.path();
+                const auto slashpos = s.find("/");
+                if (slashpos == -1) {
+                    cout << s << endl;
+                } else {
+                    cout << s.substr(slashpos + 1, s.length()) << endl;
+                }
+            }
+        }
+        return 0;
+    } else if ((argc > 1) && string(argv[1]) == "--help") {
+        cout << "muviz [VISUALIZER]" << endl << endl;
+        cout << "Flags:" << endl;
+        cout << "  -l            list available visualizers" << endl;
+        cout << "  --help        display this help" << endl;
+        cout << "  --version     display the current version" << endl;
+        return 0;
+    } else if ((argc > 1) && string(argv[1]) == "--version") {
+        cout << version_string << endl;
+        return 0;
+    } else if (argc > 1) {
+        shader_folder = shader_folder / string(argv[1]);
+        shader_config_folder = shader_config_folder / string(argv[1]);
+    } else {
+        shader_folder = shader_folder / default_visualizer;
+        shader_config_folder = shader_config_folder / default_visualizer;
+    }
 
     filesys::path shader_config_path = shader_config_folder / "shader.json";
 
