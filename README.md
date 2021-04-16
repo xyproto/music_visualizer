@@ -36,5 +36,5 @@ Set `$pkgdir` to the root of where you want muviz to be installed.
 
 ## General information
 
-* Version: 1.1.0
+* Version: 1.1.1
 * License: MIT and GPL3. See the [`LICENCE`](LICENSE) file for more information.

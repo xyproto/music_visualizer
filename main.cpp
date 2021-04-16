@@ -29,8 +29,7 @@ using std::runtime_error;
 using AudioStreamT = LinuxAudioStream;
 using AudioProcessT = AudioProcess<ClockT, AudioStreamT>;
 
-const std::string version_string = "muviz 1.1.0";
-
+const std::string version_string = "muviz 1.1.1";
 const std::string default_visualizer = "spikestar";
 
 int main(int argc, char* argv[])
@@ -43,7 +42,7 @@ int main(int argc, char* argv[])
         for (const auto& entry : std::filesystem::directory_iterator(shader_folder.string())) {
             if (entry.is_directory()) {
                 const std::string s = entry.path();
-                const auto slashpos = s.find("/");
+                const auto slashpos = s.rfind("/");
                 if (slashpos == -1) {
                     cout << s << endl;
                 } else {
