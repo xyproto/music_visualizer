@@ -6,7 +6,7 @@ The idea is that this can be used on a Raspberry Pi in combination with an old p
 
 The default visualizer in `muviz` is based on both one of the visualizers from `music_visualizer` and also a [shader that I wrote](https://www.shadertoy.com/view/3slSRN).
 
-Screenshot of the default music visualizer:
+Screenshot of the default music visualizer (it's very light because it's meant to be used with a projector, like an effect, and not viewed directly on a monitor):
 
 ![Screenshot](img/muviz_screenshot.jpg)
 
